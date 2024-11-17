@@ -1,6 +1,8 @@
+use log::{debug, warn};
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
+use typed_builder::TypedBuilder;
 
 use chrono::Duration;
 
@@ -157,7 +159,7 @@ impl CacheManager {
                 let mut interval = tokio::time::interval_at(start, duration);
                 loop {
                     let _ = interval.tick().await;
-                    cache::cleanup_disk_cache::<K, V>(&expiry, &content);
+                    cache::cleanup_disk_cache(&expiry, &content);
 
                     if Arc::strong_count(&in_memory) == 1 {
                         // We're the last owner, time to stop.

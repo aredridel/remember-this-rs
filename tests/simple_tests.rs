@@ -1,5 +1,4 @@
-extern crate env_logger;
-
+use env_logger;
 use remember_this::*;
 use std::sync::atomic::Ordering;
 

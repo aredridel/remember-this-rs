@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
+use log::debug;
 
 use chrono::{DateTime, Duration, Utc};
 use flexbuffers::{FlexbufferSerializer, Reader};
@@ -122,7 +123,7 @@ where
 
         {
             // Fetch from disk cache.
-            if let Some(value_bin) = self.content.get(&key_bin).map_err(Error::Database)? {
+            if let Some(value_bin) = self.content.get(key_bin).map_err(Error::Database)? {
                 debug!(target: "remember-this", "Value was in disk cache");
                 // Found in cache.
                 let reader = Reader::get_root(&value_bin).unwrap();
@@ -187,7 +188,7 @@ where
     }
 
     pub fn cleanup_expired_disk_cache(&self) {
-        cleanup_disk_cache::<K, V>(&self.expiry, &self.content)
+        cleanup_disk_cache(&self.expiry, &self.content)
     }
 }
 
@@ -206,9 +207,7 @@ where
 }
 
 /// Remove all values from disk cache that have nothing to do here anymore.
-pub fn cleanup_disk_cache<K, V>(expiry: &sled::Tree, content: &sled::Tree)
-where
-    K: Send + Clone + Hash + Eq + for<'de> serde::Deserialize<'de> + serde::Serialize,
+pub fn cleanup_disk_cache(expiry: &sled::Tree, content: &sled::Tree)
 {
     let now = Utc::now();
     let mut batch = sled::Batch::default();
